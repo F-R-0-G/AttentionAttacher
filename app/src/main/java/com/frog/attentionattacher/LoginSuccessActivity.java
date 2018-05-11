@@ -1,5 +1,7 @@
 package com.frog.attentionattacher;
 
+import android.app.AlarmManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -23,7 +25,9 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,6 +37,7 @@ import com.frog.attentionattacher.db.PersonalInfoData;
 import com.frog.attentionattacher.gson.Weather;
 import com.frog.attentionattacher.service.AutoUpdateService;
 import com.frog.attentionattacher.utils.ActivityCollector;
+import com.frog.attentionattacher.utils.Alarm_Clock;
 import com.frog.attentionattacher.utils.AnalyzeWeatherUtil;
 import com.frog.attentionattacher.utils.HttpUtil;
 import com.frog.attentionattacher.utils.PrefUtils;
@@ -54,6 +59,9 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
 
     private int id;
     private String mWeatherId;
+
+    private Chronometer chronometer;
+    private ProgressBar progressBar;
 
     private DrawerLayout mDrawerLayout;
     private ScrollView mainBody;
@@ -80,7 +88,6 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
         editor = PreferenceManager.getDefaultSharedPreferences(LoginSuccessActivity.this).edit();
         //缓存数据
         //初始化
-
         Window window = getWindow();
         //隐藏标题栏
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -212,6 +219,9 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
         swipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary);
         //下拉刷新
 
+        chronometer = findViewById(R.id.Clock_chronometer);
+        progressBar = findViewById(R.id.Clock_ProgressBar);
+        // 创建计时器和进度条
         Button startAttachAttention = (Button) findViewById(R.id.start_attach_attention);
         startAttachAttention.setOnClickListener(this);
         //开始专注按钮
@@ -260,7 +270,9 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.start_attach_attention:
-                ToastUtil.showToast(this, "Started.", Toast.LENGTH_SHORT);
+                AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                Alarm_Clock alarm_clock = new Alarm_Clock(chronometer, progressBar);
+                alarm_clock.pickTimeAndStarted(LoginSuccessActivity.this, am);
                 break;
             default:
                 break;
