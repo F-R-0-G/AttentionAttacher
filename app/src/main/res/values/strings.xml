@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">AttentionAttacher</string>
+    <string name="login_success">login success</string>
+    <string name="welcome_back">WELCOME BACK</string>
+    <string name="Username">Username</string>
+    <string name="Password">Password</string>
+    <string name="forgot_your_password">Forgot your password ?</string>
+    <string name="login">LOGIN!</string>
+    <string name="repeat_password">Repeat Password</string>
+    <string name="register_user_name">Your name</string>
+    <string name="start">START!</string>
+    <string name="register">REGISTER</string>
+    <string name="save_background_mode">save_background_mode</string>
+    <string name="save_night_mode">save_night_mode</string>
+    <string name="change_account">change_account</string>
+    <string name="title_activity_setting">设置</string>
+</resources>
