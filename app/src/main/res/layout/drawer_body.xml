@@ -36,10 +36,11 @@
                     android:layout_width="180dp"
                     android:layout_height="50dp"
                     android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="150dp"
                     android:text="开始专注"
                     android:textSize="25sp"
-                    android:textColor="#fff"/>
-
+                    android:textColor="#fff"
+                    android:background="@drawable/start_button_bg"/>
             </LinearLayout>
         </ScrollView>
     </android.support.v4.widget.SwipeRefreshLayout>

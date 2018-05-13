@@ -10,6 +10,6 @@
     <color name="title_transparent_black">#22000000</color>
     <color name="light_black">#141414</color>
     <color name="line_and_outline_grey">#d9d9d9</color>
-    <color name="transparent_background">#30000000</color>
+    <color name="transparent_background">#00000000</color>
     <!--透明底色-->
 </resources>
