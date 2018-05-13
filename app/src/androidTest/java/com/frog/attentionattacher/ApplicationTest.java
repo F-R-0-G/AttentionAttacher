@@ -1,4 +1,4 @@
-package cn.fanrunqi.materiallogin;
+package com.frog.attentionattacher;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

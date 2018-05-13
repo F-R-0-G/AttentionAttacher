@@ -28,7 +28,7 @@ import org.litepal.crud.DataSupport;
 
 import java.util.List;
 
-public class RegisterActivity extends AppCompatActivity {
+public class RegisterActivity extends AppCompatActivity implements View.OnClickListener{
 
     private FloatingActionButton fab;
     private CardView cvAdd;
@@ -62,9 +62,13 @@ public class RegisterActivity extends AppCompatActivity {
         });
 
         Button register = (Button) findViewById(R.id.bt_start);
-        register.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        register.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.bt_start:
                 String accountIn = account.getText().toString();
                 String passwordIn = password.getText().toString();
                 String repeatPasswordIn = repeatPassword.getText().toString();
@@ -84,6 +88,7 @@ public class RegisterActivity extends AppCompatActivity {
                         }
                     });
                     dialog.show();
+                    break;
                 } else if (!accountIn.equals(repeatPasswordIn)) {
                     AlertDialog.Builder dialog = new AlertDialog.Builder(RegisterActivity.this);
                     dialog.setTitle("创建失败");
@@ -98,28 +103,54 @@ public class RegisterActivity extends AppCompatActivity {
                             username.setText("");
                         }
                     });
+                    dialog.show();
+                    break;
                 } else {
                     LitePal.getDatabase();
                     PersonalInfoData data = new PersonalInfoData();
                     List<PersonalInfoData> list = DataSupport.findAll(PersonalInfoData.class);
-                    int id = list.size() + 1;
-                    data.setId(id);
-                    data.setAccount(accountIn);
-                    data.setPassword(passwordIn);
-                    data.setUsername(usernameIn);
-                    data.save();
-                    //个人信息写入数据库
-                    Intent intent = new Intent(RegisterActivity.this, LoginSuccessActivity.class);
-                    intent.putExtra("user_id", id);
-                    startActivity(intent);
-                    //进入界面不需要出现两次，直接finish
+                    boolean flag = false;
+                    for (PersonalInfoData content : list) {
+                        if (content.getAccount().equals(accountIn)) {
+                            flag = true;
+                            break;
+                        }
+                    }
+                    if (flag) {
+                        AlertDialog.Builder dialog = new AlertDialog.Builder(RegisterActivity.this);
+                        dialog.setTitle("创建失败");
+                        dialog.setMessage("账号已存在");
+                        dialog.setCancelable(false);
+                        dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                account.setText("");
+                                password.setText("");
+                                repeatPassword.setText("");
+                                username.setText("");
+                            }
+                        });
+                        dialog.show();
+                        break;
+                    } else {
+                        int id = list.size() + 1;
+                        data.setId(id);
+                        data.setAccount(accountIn);
+                        data.setPassword(passwordIn);
+                        data.setUsername(usernameIn);
+                        data.save();
+                        //个人信息写入数据库
+                        Intent intent = new Intent(RegisterActivity.this, LoginSuccessActivity.class);
+                        intent.putExtra("user_id", id);
+                        startActivity(intent);
+                        //进入界面不需要出现两次，直接finish
+                        break;
+                    }
                 }
-            }
-        });
-
-
+            default:
+                break;
+        }
     }
-
 
     private void initView() {
         fab = findViewById(R.id.fab);

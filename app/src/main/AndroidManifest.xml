@@ -30,7 +30,15 @@
             android:theme="@style/Translucent" />
         <activity
             android:name=".AlarmActivity"
-            android:theme="@style/AppTheme.transparent_activity" />
+            android:theme="@style/AppTheme.transparent_activity"/>
+
+        <meta-data
+            android:name="design_width"
+            android:value="768" />
+        <meta-data
+            android:name="design_height"
+            android:value="1280" />
+
     </application>
 
 </manifest>

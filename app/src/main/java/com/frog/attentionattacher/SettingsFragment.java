@@ -7,6 +7,7 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.widget.Toast;
 
+import com.frog.attentionattacher.utils.ActivityCollector;
 import com.frog.attentionattacher.utils.PrefUtils;
 import com.frog.attentionattacher.utils.ToastUtil;
 
@@ -65,11 +66,9 @@ public class SettingsFragment extends PreferenceFragment {
         accountPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
-                final int KILL_OTHER_PROGRESS = 171250662;
                 Intent changeAccount = new Intent(getActivity(), LoginActivity.class);
-                changeAccount.putExtra("command", KILL_OTHER_PROGRESS);
                 startActivity(changeAccount);
-                getActivity().finish();
+                ActivityCollector.finishAll();
                 return true;
             }
         });
