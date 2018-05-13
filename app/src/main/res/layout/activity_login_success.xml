@@ -1,18 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v4.widget.DrawerLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <include layout="@layout/drawer_body"/>
-
-    <android.support.design.widget.NavigationView
-        android:id="@+id/nav_view"
+    <android.support.v4.widget.DrawerLayout
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/drawer_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        app:headerLayout="@layout/drawer_head"/>
+        android:layout_height="match_parent">
 
-</android.support.v4.widget.DrawerLayout>
+        <include layout="@layout/drawer_body"/>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#fff"
+            android:layout_gravity="start">
+
+            <include layout="@layout/drawer_head"
+                android:layout_width="match_parent"
+                android:layout_height="150dp" />
+
+            <fragment
+                android:id="@+id/test_fragment"
+                android:name="com.frog.attentionattacher.FoldListFragment"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="12"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginTop="5dp"
+                android:layout_marginRight="10dp"
+                android:gravity="end"
+                android:text="此处可能会有一句骚话"
+                android:textSize="20sp"
+                android:textColor="#222222"
+                android:background="#fff"/>
+
+        </LinearLayout>
+    </android.support.v4.widget.DrawerLayout>
+</FrameLayout>
+

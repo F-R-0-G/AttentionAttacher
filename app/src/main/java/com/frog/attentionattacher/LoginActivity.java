@@ -30,15 +30,17 @@ import com.bumptech.glide.request.target.SimpleTarget;
 import com.frog.attentionattacher.db.PersonalInfoData;
 import com.frog.attentionattacher.utils.ActivityCollector;
 
+import org.litepal.LitePal;
 import org.litepal.crud.DataSupport;
 
 import java.util.List;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity implements View.OnClickListener{
 
     private EditText etUsername;
     private EditText etPassword;
-    private Button btGo;
+
+    private Button btLogin;
     private CardView cv;
     private FloatingActionButton fab;
 
@@ -49,6 +51,7 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ActivityCollector.addActivity(this);
+        ActivityCollector.finishOthers(this);
 
         Window window = getWindow();
         //隐藏标题栏
@@ -74,37 +77,20 @@ public class LoginActivity extends AppCompatActivity {
             getWindow().setEnterTransition(null);
             startActivity(new Intent(LoginActivity.this, WelcomeActivity.class));
         } else {
-            //不是首次登录，无事发生}
+            //不是首次登录，无事发生
         }
     }
 
     private void initView() {
         etUsername = findViewById(R.id.et_username);
         etPassword = findViewById(R.id.et_password);
-        btGo = findViewById(R.id.bt_login);
+        btLogin = findViewById(R.id.bt_login);
         cv = findViewById(R.id.cv);
         fab = findViewById(R.id.fab);
     }
 
     private void setListener() {
-        btGo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Explode explode = new Explode();
-                explode.setDuration(500);
-                getWindow().setExitTransition(explode);
-                getWindow().setEnterTransition(explode);
-                //动画效果
-
-
-
-                //
-                ActivityOptionsCompat oc2 = ActivityOptionsCompat.makeSceneTransitionAnimation(LoginActivity.this);
-                Intent i2 = new Intent(LoginActivity.this,LoginSuccessActivity.class);
-                startActivity(i2);
-
-            }
-        });
+        btLogin.setOnClickListener(this);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -117,6 +103,71 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(new Intent(LoginActivity.this, RegisterActivity.class), options.toBundle());
             }
         });
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.bt_login:
+                Explode explode = new Explode();
+                explode.setDuration(500);
+                getWindow().setExitTransition(explode);
+                getWindow().setEnterTransition(explode);
+                //动画效果
+                String accountGot = etUsername.getText().toString();
+                String passwordGot = etPassword.getText().toString();
+                int id = 0;
+                if (TextUtils.isEmpty(accountGot) || TextUtils.isEmpty(passwordGot)) {
+                    AlertDialog.Builder dialog = new AlertDialog.Builder(LoginActivity.this);
+                    dialog.setTitle("登录失败");
+                    dialog.setMessage("账号密码不能为空！");
+                    dialog.setCancelable(false);
+                    dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            etUsername.setText("");
+                            etPassword.setText("");
+                        }
+                    });
+                    dialog.show();
+                    break;
+                } else {
+                    List<PersonalInfoData> list = DataSupport.findAll(PersonalInfoData.class);
+                    boolean flag = false;
+                    for (PersonalInfoData data : list) {
+                        String accountData = data.getAccount();
+                        String passwordData = data.getPassword();
+                        if (accountData.equals(accountGot) && passwordData.equals(passwordGot)) {
+                            flag = true;
+                            id = data.getId();
+                            break;
+                        }
+                    }
+                    if (!flag) {
+                        AlertDialog.Builder dialog = new AlertDialog.Builder(LoginActivity.this);
+                        dialog.setTitle("登录失败");
+                        dialog.setMessage("账号或密码错误!");
+                        dialog.setCancelable(false);
+                        dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                etUsername.setText("");
+                                etPassword.setText("");
+                            }
+                        });
+                        dialog.show();
+                        break;
+                    }
+                }
+                //
+                Intent i2 = new Intent(LoginActivity.this, LoginSuccessActivity.class);
+                i2.putExtra("user_id", id);
+                startActivity(i2);
+                finish();
+                break;
+            default:
+                break;
+        }
     }
 
     @Override
