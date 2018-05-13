@@ -7,9 +7,12 @@ import android.app.PendingIntent;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.drm.DrmManagerClient;
+import android.media.MediaDrm;
 import android.os.SystemClock;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
+import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.ProgressBar;
 import android.widget.TimePicker;
@@ -36,31 +39,47 @@ public class Alarm_Clock {
     private long selectTime;
     private Context context;
 
+    private OnAlarmListener mListener;
+
+    public void setOnAlarmListener(OnAlarmListener listener){   // 创建闹钟的接口
+        mListener = listener;
+    }
+
+    public void doAfterAlarm(){
+        if (mListener != null)
+            mListener.OnAlarm();
+    }
+
+    public interface OnAlarmListener{
+        void OnAlarm();
+    }
+
     public Alarm_Clock (Chronometer chronometer, ProgressBar progressBar, Context context, NumberPicker numberPicker){
-        numberPicker.setVisibility(View.INVISIBLE);
-        chronometer.setVisibility(View.VISIBLE);
         this.chronometer = chronometer;
         this.progressBar = progressBar;
         this.context = context;
         this.numberPicker = numberPicker;
+        numberPicker.setVisibility(View.INVISIBLE);
+        chronometer.setVisibility(View.VISIBLE);
     }
 
 
-    public long startCounting(final int numberChoosed){
+    public long startCounting(final int numberChoosed, Button startButton, Button stopButton, Button cancelButton){
         // 设置AlarmManager在Calendar对应的时间启动Activity
-        selectTime = numberChoosed * 5 * 60 * 1000;
+        if (numberChoosed == 1) selectTime = 60 * 1000;
+        else selectTime = (numberChoosed - 1) * 5 * 60 * 1000;
         ToastUtil.showToast(context, "设置成功");
 
         chronometer.setBase(SystemClock.elapsedRealtime() + selectTime);  // 设置倒计时
         chronometer.setCountDown(true);
         chronometer.start();
-        initProgressBar(selectTime);
+        initProgressBar(selectTime, startButton, stopButton, cancelButton);
 
         return selectTime;
     }
 
     // 初始化一个ProgressBar，并在结束时停止chronometer
-    private void initProgressBar(long duration) {
+    private void initProgressBar(long duration, final Button startButton, final Button stopButton, final Button cancelButton) {
         progressBar.setMax(MAX_PROGRESS);
         progressBar.setProgress(0);
 
@@ -77,8 +96,11 @@ public class Alarm_Clock {
                     progressBar.setProgress(0);
                     chronometer.setVisibility(View.INVISIBLE);
                     numberPicker.setVisibility(View.VISIBLE);
-                    Intent intent = new Intent(context, AlarmActivity.class);
-                    context.startActivity(intent);
+                    startButton.setVisibility(View.VISIBLE);
+                    stopButton.setVisibility(View.INVISIBLE);
+                    cancelButton.setVisibility(View.INVISIBLE);
+                    NotificationUtils notification = new NotificationUtils(context);
+                    notification.sendNotification("时间","时间到了");
                 }
             }
         });
