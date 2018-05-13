@@ -27,11 +27,10 @@
         <activity android:name=".ChooseWeatherActivity" />
         <activity
             android:name=".WelcomeActivity"
-            android:theme="@style/Translucent"/>
+            android:theme="@style/Translucent" />
         <activity
             android:name=".AlarmActivity"
-            android:theme="@style/AppTheme.transparent_activity">
-        </activity>
+            android:theme="@style/AppTheme.transparent_activity" />
     </application>
 
 </manifest>

@@ -45,6 +45,7 @@ import com.frog.attentionattacher.utils.ToastUtil;
 import com.oguzdev.circularfloatingactionmenu.library.FloatingActionButton;
 import com.oguzdev.circularfloatingactionmenu.library.FloatingActionMenu;
 import com.oguzdev.circularfloatingactionmenu.library.SubActionButton;
+import com.shawnlin.numberpicker.NumberPicker;
 
 import org.litepal.crud.DataSupport;
 
@@ -62,6 +63,7 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
 
     private Chronometer chronometer;
     private ProgressBar progressBar;
+    private NumberPicker numberPicker;
 
     private DrawerLayout mDrawerLayout;
     private ScrollView mainBody;
@@ -79,6 +81,7 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
 
     final private int START_SETTINGS_FOR_WEATHER=11;
 
+    private static final String TAG = "LoginSuccessActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -220,12 +223,22 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
         //下拉刷新
 
         chronometer = findViewById(R.id.Clock_chronometer);
+        chronometer.setVisibility(View.INVISIBLE);
         progressBar = findViewById(R.id.Clock_ProgressBar);
         // 创建计时器和进度条
+        numberPicker = findViewById(R.id.number_picker);
+        String[] displayNumber = new String[12];
+        for (int i = 1; i <= 12; i++){
+            displayNumber[i-1] = Integer.toString(i*5) + ":" + "00";
+        }
+        numberPicker.setMinValue(1);
+        numberPicker.setMaxValue(displayNumber.length);
+        numberPicker.setDisplayedValues(displayNumber);
+        numberPicker.setValue(5);
+        // 创建时间选择器
         Button startAttachAttention = (Button) findViewById(R.id.start_attach_attention);
         startAttachAttention.setOnClickListener(this);
         //开始专注按钮
-
         bingPicImg = (ImageView) findViewById(R.id.bing_pic_img);
         Intent update = new Intent(this, AutoUpdateService.class);
         startService(update);
@@ -270,9 +283,9 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.start_attach_attention:
-                AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-                Alarm_Clock alarm_clock = new Alarm_Clock(chronometer, progressBar);
-                alarm_clock.pickTimeAndStarted(LoginSuccessActivity.this, am);
+                int num = numberPicker.getValue();
+                Alarm_Clock alarm_clock = new Alarm_Clock(chronometer, progressBar, LoginSuccessActivity.this, numberPicker);
+                alarm_clock.startCounting(num);
                 break;
             default:
                 break;
