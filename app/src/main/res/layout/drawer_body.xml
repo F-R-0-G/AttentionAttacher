@@ -47,11 +47,22 @@
 
                     <Button
                         android:id="@+id/stop_button"
+                        android:layout_width="180dp"
+                        android:layout_height="50dp"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginTop="150dp"
+                        android:text="暂停"
+                        android:textSize="25sp"
+                        android:textColor="#fff"
+                        android:background="@drawable/start_button_bg"/>
+
+                    <Button
+                        android:id="@+id/resume_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="80dp"
                         android:layout_toStartOf="@id/start_attach_attention"
-                        android:text="暂停"
+                        android:text="继续"
                         android:textSize="25sp"
                         android:textColor="#fff"
                         android:background="@drawable/start_button_bg"/>
@@ -62,7 +73,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="80dp"
                         android:layout_toEndOf="@id/start_attach_attention"
-                        android:text="取消"
+                        android:text="长按取消"
                         android:textSize="25sp"
                         android:textColor="#fff"
                         android:background="@drawable/start_button_bg"/>

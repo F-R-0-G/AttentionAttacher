@@ -38,34 +38,20 @@ public class Alarm_Clock {
     private static final int MAX_PROGRESS = 10000;
     private long selectTime;
     private Context context;
+    private long pauseTime;
 
-    private OnAlarmListener mListener;
-
-    public void setOnAlarmListener(OnAlarmListener listener){   // 创建闹钟的接口
-        mListener = listener;
-    }
-
-    public void doAfterAlarm(){
-        if (mListener != null)
-            mListener.OnAlarm();
-    }
-
-    public interface OnAlarmListener{
-        void OnAlarm();
-    }
-
-    public Alarm_Clock (Chronometer chronometer, ProgressBar progressBar, Context context, NumberPicker numberPicker){
+    public Alarm_Clock (Chronometer chronometer, ProgressBar progressBar, Context context,
+                        NumberPicker numberPicker){
         this.chronometer = chronometer;
         this.progressBar = progressBar;
         this.context = context;
         this.numberPicker = numberPicker;
-        numberPicker.setVisibility(View.INVISIBLE);
-        chronometer.setVisibility(View.VISIBLE);
     }
 
 
     public long startCounting(final int numberChoosed, Button startButton, Button stopButton, Button cancelButton){
-        // 设置AlarmManager在Calendar对应的时间启动Activity
+        numberPicker.setVisibility(View.INVISIBLE);
+        chronometer.setVisibility(View.VISIBLE);
         if (numberChoosed == 1) selectTime = 60 * 1000;
         else selectTime = (numberChoosed - 1) * 5 * 60 * 1000;
         ToastUtil.showToast(context, "设置成功");
@@ -79,7 +65,8 @@ public class Alarm_Clock {
     }
 
     // 初始化一个ProgressBar，并在结束时停止chronometer
-    private void initProgressBar(long duration, final Button startButton, final Button stopButton, final Button cancelButton) {
+    private void initProgressBar(long duration, final Button startButton,
+                                 final Button stopButton, final Button cancelButton) {
         progressBar.setMax(MAX_PROGRESS);
         progressBar.setProgress(0);
 
@@ -98,12 +85,35 @@ public class Alarm_Clock {
                     numberPicker.setVisibility(View.VISIBLE);
                     startButton.setVisibility(View.VISIBLE);
                     stopButton.setVisibility(View.INVISIBLE);
-                    cancelButton.setVisibility(View.INVISIBLE);
+                    if (chronometer.getBase() != 0){
+                        return;
+                    }
                     NotificationUtils notification = new NotificationUtils(context);
                     notification.sendNotification("时间","时间到了");
                 }
             }
         });
         valueAnimator.start();
+    }
+
+    public void pauseAlarm(){
+        valueAnimator.pause();
+        chronometer.stop();
+        pauseTime = SystemClock.elapsedRealtime();
+    }
+
+    public void resumeAlarm(){
+        if (pauseTime != 0){
+            chronometer.setBase(chronometer.getBase() + (SystemClock.elapsedRealtime() - pauseTime));
+        }
+        else {
+            chronometer.setBase(SystemClock.elapsedRealtime());
+        }
+        valueAnimator.resume();
+        chronometer.start();
+    }
+
+    public void cancelAlarm(){
+        valueAnimator.end();
     }
 }
