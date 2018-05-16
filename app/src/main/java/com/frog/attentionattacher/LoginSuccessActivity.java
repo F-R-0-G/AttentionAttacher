@@ -1,11 +1,13 @@
 package com.frog.attentionattacher;
 
+import android.animation.ValueAnimator;
 import android.app.AlarmManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -28,6 +30,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.frog.attentionattacher.db.AttentionTimeData;
 import com.frog.attentionattacher.db.PersonalInfoData;
 import com.frog.attentionattacher.gson.Weather;
 import com.frog.attentionattacher.service.AutoUpdateService;
@@ -59,6 +62,11 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
     private Chronometer chronometer;
     private ProgressBar progressBar;
     private NumberPicker numberPicker;
+    private Button stopButton;
+    private Button cancelButton;
+    private Button resumeButton;
+    private Button startAttachAttention;
+    private Alarm_Clock alarm_clock;
 
     private DrawerLayout mDrawerLayout;
     private ScrollView mainBody;
@@ -232,18 +240,34 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
         progressBar = findViewById(R.id.Clock_ProgressBar);
         // 创建计时器和进度条
         numberPicker = findViewById(R.id.number_picker);
-        String[] displayNumber = new String[12];
-        for (int i = 1; i <= 12; i++){
-            displayNumber[i-1] = Integer.toString(i*5) + ":" + "00";
+        String[] displayNumber = new String[13];
+        displayNumber[0] = "1:00";
+        for (int i = 1; i < 13; i++){
+            displayNumber[i] = Integer.toString(i*5) + ":" + "00";
         }
         numberPicker.setMinValue(1);
         numberPicker.setMaxValue(displayNumber.length);
         numberPicker.setDisplayedValues(displayNumber);
-        numberPicker.setValue(5);
+        numberPicker.setValue(6);
         // 创建时间选择器
-        Button startAttachAttention = (Button) findViewById(R.id.start_attach_attention);
+        startAttachAttention = findViewById(R.id.start_attach_attention);
         startAttachAttention.setOnClickListener(this);
         //开始专注按钮
+        stopButton = findViewById(R.id.stop_button);
+        stopButton.setOnClickListener(this);
+        stopButton.setVisibility(View.INVISIBLE);
+        // 暂停按钮，设为不可见
+        cancelButton = findViewById(R.id.cancel_button);
+        cancelButton.setOnClickListener(this);
+        cancelButton.setVisibility(View.INVISIBLE);
+        // 取消按钮，设为不可见
+        resumeButton = findViewById(R.id.resume_button);
+        resumeButton.setOnClickListener(this);
+        resumeButton.setVisibility(View.INVISIBLE);
+        //继续按钮，设为不可见
+        alarm_clock = new Alarm_Clock(chronometer, progressBar,
+                LoginSuccessActivity.this, numberPicker);
+        // 计时器实例
         bingPicImg = (ImageView) findViewById(R.id.bing_pic_img);
         Intent update = new Intent(this, AutoUpdateService.class);
         startService(update);
@@ -304,8 +328,26 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
         switch (v.getId()) {
             case R.id.start_attach_attention:
                 int num = numberPicker.getValue();
-                Alarm_Clock alarm_clock = new Alarm_Clock(chronometer, progressBar, LoginSuccessActivity.this, numberPicker);
-                alarm_clock.startCounting(num);
+                alarm_clock.startCounting(num, startAttachAttention, stopButton);
+                startAttachAttention.setVisibility(View.INVISIBLE);
+                stopButton.setVisibility(View.VISIBLE);
+                break;
+            case R.id.resume_button:
+                stopButton.setVisibility(View.VISIBLE);
+                resumeButton.setVisibility(View.INVISIBLE);
+                cancelButton.setVisibility(View.INVISIBLE);
+                alarm_clock.resumeAlarm();
+                break;
+            case R.id.stop_button:
+                resumeButton.setVisibility(View.VISIBLE);
+                cancelButton.setVisibility(View.VISIBLE);
+                stopButton.setVisibility(View.INVISIBLE);
+                alarm_clock.pauseAlarm();
+                break;
+            case R.id.cancel_button:
+                resumeButton.setVisibility(View.INVISIBLE);
+                cancelButton.setVisibility(View.INVISIBLE);
+                alarm_clock.cancelAlarm();
                 break;
             default:
                 break;

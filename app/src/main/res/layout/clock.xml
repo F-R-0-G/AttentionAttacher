@@ -37,10 +37,11 @@
         android:id="@+id/number_picker"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="27dp"
+        android:layout_marginTop="34dp"
         android:layout_centerHorizontal="true"
         app:np_dividerColor="@color/primary"
-        app:np_selectedTextColor="@color/colorPrimary">
+        app:np_selectedTextColor="@color/colorPrimary"
+        app:np_selectedTextSize="40sp">
     </com.shawnlin.numberpicker.NumberPicker>
 
 </RelativeLayout>

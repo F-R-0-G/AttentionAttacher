@@ -73,6 +73,18 @@ public class SettingsFragment extends PreferenceFragment {
             }
         });
         //切换账号
+
+        final Preference statisticPref = getPreferenceScreen()
+                .findPreference(getString(R.string.check_statistic));
+
+        statisticPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                Intent intent = new Intent(getActivity(), checkStatistic.class);
+                startActivity(intent);
+                return true;
+            }
+        });
     }
 
     @Override
