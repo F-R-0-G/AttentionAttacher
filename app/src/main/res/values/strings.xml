@@ -13,5 +13,7 @@
     <string name="save_background_mode">save_background_mode</string>
     <string name="save_night_mode">save_night_mode</string>
     <string name="change_account">change_account</string>
+    <string name="check_statistic">check_statistic</string>
     <string name="title_activity_setting">设置</string>
+    <string name="title_activity_check_statistic">checkStatistic</string>
 </resources>

@@ -30,6 +30,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.frog.attentionattacher.db.AttentionTimeData;
 import com.frog.attentionattacher.db.PersonalInfoData;
 import com.frog.attentionattacher.gson.Weather;
 import com.frog.attentionattacher.service.AutoUpdateService;
@@ -327,7 +328,7 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
         switch (v.getId()) {
             case R.id.start_attach_attention:
                 int num = numberPicker.getValue();
-                alarm_clock.startCounting(num, startAttachAttention, stopButton, cancelButton);
+                alarm_clock.startCounting(num, startAttachAttention, stopButton);
                 startAttachAttention.setVisibility(View.INVISIBLE);
                 stopButton.setVisibility(View.VISIBLE);
                 break;

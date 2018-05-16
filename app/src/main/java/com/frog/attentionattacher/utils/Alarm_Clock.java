@@ -7,9 +7,11 @@ import android.app.PendingIntent;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.drm.DrmManagerClient;
 import android.media.MediaDrm;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 import android.widget.Button;
@@ -18,6 +20,7 @@ import android.widget.ProgressBar;
 import android.widget.TimePicker;
 
 import com.frog.attentionattacher.AlarmActivity;
+import com.frog.attentionattacher.db.AttentionTimeData;
 import com.shawnlin.numberpicker.NumberPicker;
 
 
@@ -39,6 +42,9 @@ public class Alarm_Clock {
     private long selectTime;
     private Context context;
     private long pauseTime;
+    private boolean isCancel = false;
+
+    private static final String TAG = "Alarm_Clock";
 
     public Alarm_Clock (Chronometer chronometer, ProgressBar progressBar, Context context,
                         NumberPicker numberPicker){
@@ -49,7 +55,7 @@ public class Alarm_Clock {
     }
 
 
-    public long startCounting(final int numberChoosed, Button startButton, Button stopButton, Button cancelButton){
+    public long startCounting(final int numberChoosed, Button startButton, Button stopButton){
         numberPicker.setVisibility(View.INVISIBLE);
         chronometer.setVisibility(View.VISIBLE);
         if (numberChoosed == 1) selectTime = 60 * 1000;
@@ -59,14 +65,14 @@ public class Alarm_Clock {
         chronometer.setBase(SystemClock.elapsedRealtime() + selectTime);  // 设置倒计时
         chronometer.setCountDown(true);
         chronometer.start();
-        initProgressBar(selectTime, startButton, stopButton, cancelButton);
+        initProgressBar(selectTime, startButton, stopButton);
 
         return selectTime;
     }
 
     // 初始化一个ProgressBar，并在结束时停止chronometer
     private void initProgressBar(long duration, final Button startButton,
-                                 final Button stopButton, final Button cancelButton) {
+                                 final Button stopButton) {
         progressBar.setMax(MAX_PROGRESS);
         progressBar.setProgress(0);
 
@@ -85,9 +91,11 @@ public class Alarm_Clock {
                     numberPicker.setVisibility(View.VISIBLE);
                     startButton.setVisibility(View.VISIBLE);
                     stopButton.setVisibility(View.INVISIBLE);
-                    if (chronometer.getBase() != 0){
+                    if (isCancel){
+                        isCancel = false;
                         return;
                     }
+                    AttentionTimeData.storeTime(selectTime, context);      // 存储时间数据
                     NotificationUtils notification = new NotificationUtils(context);
                     notification.sendNotification("时间","时间到了");
                 }
@@ -114,6 +122,7 @@ public class Alarm_Clock {
     }
 
     public void cancelAlarm(){
+        isCancel = true;
         valueAnimator.end();
     }
 }
