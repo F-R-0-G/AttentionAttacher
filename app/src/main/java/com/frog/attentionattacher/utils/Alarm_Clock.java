@@ -1,19 +1,27 @@
 package com.frog.attentionattacher.utils;
 
 import android.animation.ValueAnimator;
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.drm.DrmManagerClient;
+import android.media.MediaDrm;
 import android.os.SystemClock;
+import android.util.Log;
+import android.view.View;
 import android.view.animation.LinearInterpolator;
+import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.ProgressBar;
 import android.widget.TimePicker;
 
 import com.frog.attentionattacher.AlarmActivity;
-
+import com.frog.attentionattacher.db.AttentionTimeData;
+import com.shawnlin.numberpicker.NumberPicker;
 
 
 import java.util.Calendar;
@@ -28,68 +36,43 @@ import java.util.TimeZone;
 public class Alarm_Clock {
     private Chronometer chronometer;
     private ProgressBar progressBar;
+    private NumberPicker numberPicker;
     private ValueAnimator valueAnimator;
     private static final int MAX_PROGRESS = 10000;
     private long selectTime;
+    private Context context;
+    private long pauseTime;
+    private boolean isCancel = false;
 
-    public Alarm_Clock (Chronometer chronometer, ProgressBar progressBar){
+    private static final String TAG = "Alarm_Clock";
+
+    public Alarm_Clock (Chronometer chronometer, ProgressBar progressBar, Context context,
+                        NumberPicker numberPicker){
         this.chronometer = chronometer;
         this.progressBar = progressBar;
+        this.context = context;
+        this.numberPicker = numberPicker;
     }
 
 
-    public long pickTimeAndStarted(final Context context, final AlarmManager am){
-        final Calendar currentTime = Calendar.getInstance();
-        // 创建一个时间选择器
-        TimePickerDialog timePickerDialog = new TimePickerDialog(context, 0, new TimePickerDialog.OnTimeSetListener() {
-            @Override
-            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+    public long startCounting(final int numberChoosed, Button startButton, Button stopButton){
+        numberPicker.setVisibility(View.INVISIBLE);
+        chronometer.setVisibility(View.VISIBLE);
+        if (numberChoosed == 1) selectTime = 60 * 1000;
+        else selectTime = (numberChoosed - 1) * 5 * 60 * 1000;
+        ToastUtil.showToast(context, "设置成功");
 
-                // 设置当前时间
-
-                Calendar c = Calendar.getInstance();
-                // 先设置为默认时间
-                c.setTimeInMillis(System.currentTimeMillis());
-                c.setTimeZone(TimeZone.getDefault());
-                // 根据用户选择的时间来设置Calendar对象
-                c.set(Calendar.HOUR_OF_DAY, hourOfDay);
-                c.set(Calendar.MINUTE, minute);
-                c.set(Calendar.SECOND, 0);
-                c.set(Calendar.MILLISECOND, 0);
-                selectTime = c.getTimeInMillis();
-                // 创建一个PendingIntent
-                Intent intent = new Intent(context, AlarmActivity.class);
-                PendingIntent sender = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-
-                long systemTime = System.currentTimeMillis();
-                if (systemTime > selectTime){
-                    c.add(Calendar.DAY_OF_MONTH, 1);
-                    selectTime = c.getTimeInMillis();
-                    ToastUtil.showToast(context, "你也想拥有永恒的青春？");
-                    return;
-                }
-                // 设置AlarmManager在Calendar对应的时间启动Activity
-                else {
-                    am.setExact(AlarmManager.RTC_WAKEUP, selectTime, sender);
-                    ToastUtil.showToast(context, "设置成功");
-                }
-
-//                        long delta = (selectTime - systemTime) % 1000;     // 去掉0.1秒，防止跳一位
-                long alltime = selectTime - systemTime;
-                long setChronometerTime = SystemClock.elapsedRealtime() + alltime;
-                chronometer.setBase(setChronometerTime);  // 设置倒计时
-                chronometer.setCountDown(true);
-                chronometer.start();
-                initProgressBar(alltime);
-            }
-        }, currentTime.get(Calendar.HOUR_OF_DAY), currentTime.get(Calendar.MINUTE), true);
-        timePickerDialog.show();
+        chronometer.setBase(SystemClock.elapsedRealtime() + selectTime);  // 设置倒计时
+        chronometer.setCountDown(true);
+        chronometer.start();
+        initProgressBar(selectTime, startButton, stopButton);
 
         return selectTime;
     }
 
     // 初始化一个ProgressBar，并在结束时停止chronometer
-    private void initProgressBar(long duration) {
+    private void initProgressBar(long duration, final Button startButton,
+                                 final Button stopButton) {
         progressBar.setMax(MAX_PROGRESS);
         progressBar.setProgress(0);
 
@@ -104,9 +87,42 @@ public class Alarm_Clock {
                 if (value == MAX_PROGRESS) {
                     chronometer.stop();
                     progressBar.setProgress(0);
+                    chronometer.setVisibility(View.INVISIBLE);
+                    numberPicker.setVisibility(View.VISIBLE);
+                    startButton.setVisibility(View.VISIBLE);
+                    stopButton.setVisibility(View.INVISIBLE);
+                    if (isCancel){
+                        isCancel = false;
+                        return;
+                    }
+                    AttentionTimeData.storeTime(selectTime, context);      // 存储时间数据
+                    NotificationUtils notification = new NotificationUtils(context);
+                    notification.sendNotification("时间","时间到了");
                 }
             }
         });
         valueAnimator.start();
+    }
+
+    public void pauseAlarm(){
+        valueAnimator.pause();
+        chronometer.stop();
+        pauseTime = SystemClock.elapsedRealtime();
+    }
+
+    public void resumeAlarm(){
+        if (pauseTime != 0){
+            chronometer.setBase(chronometer.getBase() + (SystemClock.elapsedRealtime() - pauseTime));
+        }
+        else {
+            chronometer.setBase(SystemClock.elapsedRealtime());
+        }
+        valueAnimator.resume();
+        chronometer.start();
+    }
+
+    public void cancelAlarm(){
+        isCancel = true;
+        valueAnimator.end();
     }
 }

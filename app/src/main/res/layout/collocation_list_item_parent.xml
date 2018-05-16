@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.zhy.autolayout.AutoRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff"
+    android:orientation="vertical"
+    android:paddingTop="5dp">
+
+    <com.zhy.autolayout.AutoLinearLayout
+        android:id="@+id/parent_line"
+        android:layout_width="match_parent"
+        android:layout_height="50px"
+        android:layout_marginBottom="5dp"
+        android:gravity="center_vertical"
+        android:paddingLeft="24px"
+        android:paddingRight="24px">
+
+        <ImageView
+            android:id="@+id/parent_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/nav_schedule"
+            android:background="#222222"/>
+
+        <TextView
+            android:id="@+id/tv_collocation_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:text="待办事项"
+            android:textColor="#222222"
+            android:textSize="16sp" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1px"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/iv_status"
+            android:layout_width="28px"
+            android:layout_height="18px"
+            android:layout_gravity="right|center_vertical"
+            android:src="@mipmap/icon_top" />
+    </com.zhy.autolayout.AutoLinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/parent_line"
+        android:background="@drawable/tool_bar_shadow"/>
+
+    <com.frog.attentionattacher.widget.MyHorizontalScrollView
+        android:id="@+id/hsv_goods_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/parent_line"
+        android:scrollbars="none" />
+
+</com.zhy.autolayout.AutoRelativeLayout>

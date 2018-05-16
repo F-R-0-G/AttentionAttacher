@@ -1,16 +1,14 @@
 package com.frog.attentionattacher;
 
+import android.animation.ValueAnimator;
 import android.app.AlarmManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -19,7 +17,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.transition.Explode;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
@@ -33,6 +30,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.frog.attentionattacher.db.AttentionTimeData;
 import com.frog.attentionattacher.db.PersonalInfoData;
 import com.frog.attentionattacher.gson.Weather;
 import com.frog.attentionattacher.service.AutoUpdateService;
@@ -45,6 +43,7 @@ import com.frog.attentionattacher.utils.ToastUtil;
 import com.oguzdev.circularfloatingactionmenu.library.FloatingActionButton;
 import com.oguzdev.circularfloatingactionmenu.library.FloatingActionMenu;
 import com.oguzdev.circularfloatingactionmenu.library.SubActionButton;
+import com.shawnlin.numberpicker.NumberPicker;
 
 import org.litepal.crud.DataSupport;
 
@@ -62,11 +61,20 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
 
     private Chronometer chronometer;
     private ProgressBar progressBar;
+    private NumberPicker numberPicker;
+    private Button stopButton;
+    private Button cancelButton;
+    private Button resumeButton;
+    private Button startAttachAttention;
+    private Alarm_Clock alarm_clock;
 
     private DrawerLayout mDrawerLayout;
     private ScrollView mainBody;
     private ImageView bingPicImg;
-    public SwipeRefreshLayout swipeRefreshLayout;
+    private SwipeRefreshLayout swipeRefreshLayout;
+
+    private TextView userName;
+    private ImageView userIcon;
 
     private int mLastX;
     private int mLastY;
@@ -77,8 +85,9 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
     private SharedPreferences prefs;
     private SharedPreferences.Editor editor;
 
-    final private int START_SETTINGS_FOR_WEATHER=11;
+    private final int START_SETTINGS_FOR_WEATHER=11;
 
+    private static final String TAG = "LoginSuccessActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,7 +101,7 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
         //隐藏标题栏
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         //隐藏状态栏
-        int flag= WindowManager.LayoutParams.FLAG_FULLSCREEN;
+        int flag = WindowManager.LayoutParams.FLAG_FULLSCREEN;
         //定义全屏参数
         window.setFlags(flag, flag);
         //设置当前窗体为全屏显示
@@ -105,10 +114,10 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
 
         ImageView icon = new ImageView(this);
         icon.setImageDrawable(getResources().getDrawable(R.drawable.plus));
-        FloatingActionButton.LayoutParams params=new FloatingActionButton.LayoutParams(160,160);
-        FloatingActionButton.LayoutParams conParams=new FloatingActionButton.LayoutParams(90,90);
+        FloatingActionButton.LayoutParams params = new FloatingActionButton.LayoutParams(160, 160);
+        FloatingActionButton.LayoutParams conParams = new FloatingActionButton.LayoutParams(90, 90);
         final FloatingActionButton actionButton = new FloatingActionButton.Builder(this)
-                .setContentView(icon,conParams)
+                .setContentView(icon, conParams)
                 .setLayoutParams(params)
                 .setPosition(FloatingActionButton.POSITION_TOP_RIGHT)
                 .setTheme(FloatingActionButton.THEME_DARK)
@@ -155,7 +164,7 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
         itemIcon2.setImageDrawable(getResources().getDrawable(R.drawable.nav_settings));
         ImageView itemIcon3 = new ImageView(this);
         itemIcon3.setImageDrawable(getResources().getDrawable(R.drawable.ic_back));
-        SubActionButton.LayoutParams subParams=new FloatingActionButton.LayoutParams(100,100);
+        SubActionButton.LayoutParams subParams = new FloatingActionButton.LayoutParams(100, 100);
         SubActionButton button1 = itemBuilder.setContentView(itemIcon1)
                 .setLayoutParams(subParams)
                 .setTheme(FloatingActionButton.THEME_DARK)
@@ -168,6 +177,13 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
                 .setLayoutParams(subParams)
                 .setTheme(FloatingActionButton.THEME_DARK)
                 .build();
+
+        button1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                
+            }
+        });
 
         button2.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -220,12 +236,38 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
         //下拉刷新
 
         chronometer = findViewById(R.id.Clock_chronometer);
+        chronometer.setVisibility(View.INVISIBLE);
         progressBar = findViewById(R.id.Clock_ProgressBar);
         // 创建计时器和进度条
-        Button startAttachAttention = (Button) findViewById(R.id.start_attach_attention);
+        numberPicker = findViewById(R.id.number_picker);
+        String[] displayNumber = new String[13];
+        displayNumber[0] = "1:00";
+        for (int i = 1; i < 13; i++){
+            displayNumber[i] = Integer.toString(i*5) + ":" + "00";
+        }
+        numberPicker.setMinValue(1);
+        numberPicker.setMaxValue(displayNumber.length);
+        numberPicker.setDisplayedValues(displayNumber);
+        numberPicker.setValue(6);
+        // 创建时间选择器
+        startAttachAttention = findViewById(R.id.start_attach_attention);
         startAttachAttention.setOnClickListener(this);
         //开始专注按钮
-
+        stopButton = findViewById(R.id.stop_button);
+        stopButton.setOnClickListener(this);
+        stopButton.setVisibility(View.INVISIBLE);
+        // 暂停按钮，设为不可见
+        cancelButton = findViewById(R.id.cancel_button);
+        cancelButton.setOnClickListener(this);
+        cancelButton.setVisibility(View.INVISIBLE);
+        // 取消按钮，设为不可见
+        resumeButton = findViewById(R.id.resume_button);
+        resumeButton.setOnClickListener(this);
+        resumeButton.setVisibility(View.INVISIBLE);
+        //继续按钮，设为不可见
+        alarm_clock = new Alarm_Clock(chronometer, progressBar,
+                LoginSuccessActivity.this, numberPicker);
+        // 计时器实例
         bingPicImg = (ImageView) findViewById(R.id.bing_pic_img);
         Intent update = new Intent(this, AutoUpdateService.class);
         startService(update);
@@ -264,15 +306,48 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
         });
         //滑动侧边栏
 
+        userIcon=(ImageView) findViewById(R.id.nav_icon_image);
+        userName=(TextView)findViewById(R.id.nav_user_name);
+        Intent rawIntent = getIntent();
+        Bundle bundle = rawIntent.getExtras();
+        if (bundle != null) {
+            id = bundle.getInt("user_id");
+            List<PersonalInfoData> list = DataSupport.findAll(PersonalInfoData.class);
+            String name = list.get(id - 1).getUsername();
+            editor.putString("user_name", name);
+            editor.apply();
+            userName.setText(name);
+            //初始化个人信息
+        } else {
+            userName.setText(prefs.getString("user_name", null));
+        }
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.start_attach_attention:
-                AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-                Alarm_Clock alarm_clock = new Alarm_Clock(chronometer, progressBar);
-                alarm_clock.pickTimeAndStarted(LoginSuccessActivity.this, am);
+                int num = numberPicker.getValue();
+                alarm_clock.startCounting(num, startAttachAttention, stopButton);
+                startAttachAttention.setVisibility(View.INVISIBLE);
+                stopButton.setVisibility(View.VISIBLE);
+                break;
+            case R.id.resume_button:
+                stopButton.setVisibility(View.VISIBLE);
+                resumeButton.setVisibility(View.INVISIBLE);
+                cancelButton.setVisibility(View.INVISIBLE);
+                alarm_clock.resumeAlarm();
+                break;
+            case R.id.stop_button:
+                resumeButton.setVisibility(View.VISIBLE);
+                cancelButton.setVisibility(View.VISIBLE);
+                stopButton.setVisibility(View.INVISIBLE);
+                alarm_clock.pauseAlarm();
+                break;
+            case R.id.cancel_button:
+                resumeButton.setVisibility(View.INVISIBLE);
+                cancelButton.setVisibility(View.INVISIBLE);
+                alarm_clock.cancelAlarm();
                 break;
             default:
                 break;
@@ -291,6 +366,7 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
                     public void run() {
                         ToastUtil.showToast(LoginSuccessActivity.this,
                                 "图片加载失败", Toast.LENGTH_SHORT);
+                        Glide.with(LoginSuccessActivity.this).load(R.drawable.bg).into(bingPicImg);
                         swipeRefreshLayout.setRefreshing(false);
                     }
                 });
@@ -374,6 +450,7 @@ public class LoginSuccessActivity extends AppCompatActivity implements View.OnCl
                     public void run() {
                         ToastUtil.showToast(LoginSuccessActivity.this,
                                 "获取天气信息失败", Toast.LENGTH_SHORT);
+                        Glide.with(LoginSuccessActivity.this).load(R.drawable.bg).into(bingPicImg);
                         swipeRefreshLayout.setRefreshing(false);
                     }
                 });
